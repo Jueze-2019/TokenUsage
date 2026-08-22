@@ -1,0 +1,580 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		FACE00000000000000002001 /* AIProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = FACE00000000000000001003 /* AIProvider.swift */; };
+		FACE00000000000000002002 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = FACE00000000000000001004 /* Models.swift */; };
+		FACE00000000000000002003 /* SharedStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = FACE00000000000000001005 /* SharedStore.swift */; };
+		FACE00000000000000002005 /* Formatting.swift in Sources */ = {isa = PBXBuildFile; fileRef = FACE00000000000000001007 /* Formatting.swift */; };
+		FACE00000000000000002006 /* SparklineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FACE00000000000000001008 /* SparklineView.swift */; };
+		FACE00000000000000002007 /* TokenUsageApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = FACE00000000000000001009 /* TokenUsageApp.swift */; };
+		FACE00000000000000002008 /* BalanceService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FACE0000000000000000100A /* BalanceService.swift */; };
+		FACE00000000000000002009 /* APIKeyStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = FACE0000000000000000100B /* APIKeyStore.swift */; };
+		FACE00000000000000002019 /* UsageImporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = FACE00000000000000001016 /* UsageImporter.swift */; };
+		FACE0000000000000000200A /* BalanceStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = FACE0000000000000000100C /* BalanceStore.swift */; };
+		FACE0000000000000000200B /* MenuBarContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FACE0000000000000000100D /* MenuBarContentView.swift */; };
+		FACE0000000000000000200C /* ProviderCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FACE0000000000000000100E /* ProviderCardView.swift */; };
+		FACE0000000000000000200D /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FACE0000000000000000100F /* SettingsView.swift */; };
+		FACE0000000000000000201A /* Interactives.swift in Sources */ = {isa = PBXBuildFile; fileRef = FACE00000000000000001017 /* Interactives.swift */; };
+		FACE0000000000000000200E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = FACE00000000000000001010 /* Assets.xcassets */; };
+		FACE0000000000000000200F /* AIProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = FACE00000000000000001003 /* AIProvider.swift */; };
+		FACE00000000000000002010 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = FACE00000000000000001004 /* Models.swift */; };
+		FACE00000000000000002011 /* SharedStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = FACE00000000000000001005 /* SharedStore.swift */; };
+		FACE00000000000000002013 /* Formatting.swift in Sources */ = {isa = PBXBuildFile; fileRef = FACE00000000000000001007 /* Formatting.swift */; };
+		FACE00000000000000002014 /* SparklineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FACE00000000000000001008 /* SparklineView.swift */; };
+		FACE00000000000000002015 /* TokenUsageWidgetBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = FACE00000000000000001012 /* TokenUsageWidgetBundle.swift */; };
+		FACE00000000000000002016 /* BalanceWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = FACE00000000000000001013 /* BalanceWidget.swift */; };
+		FACE00000000000000002017 /* WidgetViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = FACE00000000000000001014 /* WidgetViews.swift */; };
+		FACE00000000000000002018 /* TokenUsageWidget.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = FACE00000000000000001002 /* TokenUsageWidget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		FACE00000000000000008002 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = FACE00000000000000008001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = FACE00000000000000004002;
+			remoteInfo = TokenUsageWidget;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		FACE00000000000000005004 /* Embed App Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				FACE00000000000000002018 /* TokenUsageWidget.appex in Embed App Extensions */,
+			);
+			name = "Embed App Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		FACE00000000000000001001 /* TokenUsage.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TokenUsage.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		FACE00000000000000001002 /* TokenUsageWidget.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = TokenUsageWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		FACE00000000000000001003 /* AIProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIProvider.swift; sourceTree = "<group>"; };
+		FACE00000000000000001004 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
+		FACE00000000000000001005 /* SharedStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedStore.swift; sourceTree = "<group>"; };
+		FACE00000000000000001007 /* Formatting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Formatting.swift; sourceTree = "<group>"; };
+		FACE00000000000000001008 /* SparklineView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SparklineView.swift; sourceTree = "<group>"; };
+		FACE00000000000000001009 /* TokenUsageApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenUsageApp.swift; sourceTree = "<group>"; };
+		FACE0000000000000000100A /* BalanceService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BalanceService.swift; sourceTree = "<group>"; };
+		FACE0000000000000000100B /* APIKeyStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIKeyStore.swift; sourceTree = "<group>"; };
+		FACE0000000000000000100C /* BalanceStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BalanceStore.swift; sourceTree = "<group>"; };
+		FACE0000000000000000100D /* MenuBarContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarContentView.swift; sourceTree = "<group>"; };
+		FACE0000000000000000100E /* ProviderCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProviderCardView.swift; sourceTree = "<group>"; };
+		FACE0000000000000000100F /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		FACE00000000000000001017 /* Interactives.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Interactives.swift; sourceTree = "<group>"; };
+		FACE00000000000000001010 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		FACE00000000000000001011 /* TokenUsage.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = TokenUsage.entitlements; sourceTree = "<group>"; };
+		FACE00000000000000001012 /* TokenUsageWidgetBundle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenUsageWidgetBundle.swift; sourceTree = "<group>"; };
+		FACE00000000000000001013 /* BalanceWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BalanceWidget.swift; sourceTree = "<group>"; };
+		FACE00000000000000001014 /* WidgetViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetViews.swift; sourceTree = "<group>"; };
+		FACE00000000000000001015 /* TokenUsageWidget.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = TokenUsageWidget.entitlements; sourceTree = "<group>"; };
+		FACE00000000000000001016 /* UsageImporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsageImporter.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		FACE00000000000000005002 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		FACE00000000000000005006 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		FACE00000000000000003001 = {
+			isa = PBXGroup;
+			children = (
+				FACE00000000000000003003 /* Shared */,
+				FACE00000000000000003004 /* TokenUsage */,
+				FACE00000000000000003008 /* TokenUsageWidget */,
+				FACE00000000000000003002 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		FACE00000000000000003002 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				FACE00000000000000001001 /* TokenUsage.app */,
+				FACE00000000000000001002 /* TokenUsageWidget.appex */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		FACE00000000000000003003 /* Shared */ = {
+			isa = PBXGroup;
+			children = (
+				FACE00000000000000001003 /* AIProvider.swift */,
+				FACE00000000000000001004 /* Models.swift */,
+				FACE00000000000000001005 /* SharedStore.swift */,
+				FACE00000000000000001007 /* Formatting.swift */,
+				FACE00000000000000001008 /* SparklineView.swift */,
+			);
+			path = Shared;
+			sourceTree = "<group>";
+		};
+		FACE00000000000000003004 /* TokenUsage */ = {
+			isa = PBXGroup;
+			children = (
+				FACE00000000000000001009 /* TokenUsageApp.swift */,
+				FACE00000000000000003005 /* Services */,
+				FACE00000000000000003006 /* State */,
+				FACE00000000000000003007 /* Views */,
+				FACE00000000000000001010 /* Assets.xcassets */,
+				FACE00000000000000001011 /* TokenUsage.entitlements */,
+			);
+			path = TokenUsage;
+			sourceTree = "<group>";
+		};
+		FACE00000000000000003005 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				FACE0000000000000000100A /* BalanceService.swift */,
+				FACE0000000000000000100B /* APIKeyStore.swift */,
+				FACE00000000000000001016 /* UsageImporter.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		FACE00000000000000003006 /* State */ = {
+			isa = PBXGroup;
+			children = (
+				FACE0000000000000000100C /* BalanceStore.swift */,
+			);
+			path = State;
+			sourceTree = "<group>";
+		};
+		FACE00000000000000003007 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				FACE0000000000000000100D /* MenuBarContentView.swift */,
+				FACE0000000000000000100E /* ProviderCardView.swift */,
+				FACE0000000000000000100F /* SettingsView.swift */,
+				FACE00000000000000001017 /* Interactives.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		FACE00000000000000003008 /* TokenUsageWidget */ = {
+			isa = PBXGroup;
+			children = (
+				FACE00000000000000001012 /* TokenUsageWidgetBundle.swift */,
+				FACE00000000000000001013 /* BalanceWidget.swift */,
+				FACE00000000000000001014 /* WidgetViews.swift */,
+				FACE00000000000000001015 /* TokenUsageWidget.entitlements */,
+			);
+			path = TokenUsageWidget;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		FACE00000000000000004001 /* TokenUsage */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = FACE00000000000000007002 /* Build configuration list for PBXNativeTarget "TokenUsage" */;
+			buildPhases = (
+				FACE00000000000000005001 /* Sources */,
+				FACE00000000000000005002 /* Frameworks */,
+				FACE00000000000000005003 /* Resources */,
+				FACE00000000000000005004 /* Embed App Extensions */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				FACE00000000000000008003 /* PBXTargetDependency */,
+			);
+			name = TokenUsage;
+			productName = TokenUsage;
+			productReference = FACE00000000000000001001 /* TokenUsage.app */;
+			productType = "com.apple.product-type.application";
+		};
+		FACE00000000000000004002 /* TokenUsageWidget */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = FACE00000000000000007003 /* Build configuration list for PBXNativeTarget "TokenUsageWidget" */;
+			buildPhases = (
+				FACE00000000000000005005 /* Sources */,
+				FACE00000000000000005006 /* Frameworks */,
+				FACE00000000000000005007 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = TokenUsageWidget;
+			productName = TokenUsageWidget;
+			productReference = FACE00000000000000001002 /* TokenUsageWidget.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		FACE00000000000000008001 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1600;
+				LastUpgradeCheck = 1600;
+				TargetAttributes = {
+					FACE00000000000000004001 = {
+						CreatedOnToolsVersion = 16.0;
+					};
+					FACE00000000000000004002 = {
+						CreatedOnToolsVersion = 16.0;
+					};
+				};
+			};
+			buildConfigurationList = FACE00000000000000007001 /* Build configuration list for PBXProject "TokenUsage" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+				"zh-Hans",
+			);
+			mainGroup = FACE00000000000000003001;
+			productRefGroup = FACE00000000000000003002 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				FACE00000000000000004001 /* TokenUsage */,
+				FACE00000000000000004002 /* TokenUsageWidget */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		FACE00000000000000005003 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FACE0000000000000000200E /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		FACE00000000000000005007 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		FACE00000000000000005001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FACE00000000000000002007 /* TokenUsageApp.swift in Sources */,
+				FACE00000000000000002008 /* BalanceService.swift in Sources */,
+				FACE00000000000000002009 /* APIKeyStore.swift in Sources */,
+				FACE00000000000000002019 /* UsageImporter.swift in Sources */,
+				FACE0000000000000000200A /* BalanceStore.swift in Sources */,
+				FACE0000000000000000200B /* MenuBarContentView.swift in Sources */,
+				FACE0000000000000000200C /* ProviderCardView.swift in Sources */,
+				FACE0000000000000000201A /* Interactives.swift in Sources */,
+				FACE0000000000000000200D /* SettingsView.swift in Sources */,
+				FACE00000000000000002001 /* AIProvider.swift in Sources */,
+				FACE00000000000000002002 /* Models.swift in Sources */,
+				FACE00000000000000002003 /* SharedStore.swift in Sources */,
+				FACE00000000000000002005 /* Formatting.swift in Sources */,
+				FACE00000000000000002006 /* SparklineView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		FACE00000000000000005005 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FACE00000000000000002015 /* TokenUsageWidgetBundle.swift in Sources */,
+				FACE00000000000000002016 /* BalanceWidget.swift in Sources */,
+				FACE00000000000000002017 /* WidgetViews.swift in Sources */,
+				FACE0000000000000000200F /* AIProvider.swift in Sources */,
+				FACE00000000000000002010 /* Models.swift in Sources */,
+				FACE00000000000000002011 /* SharedStore.swift in Sources */,
+				FACE00000000000000002013 /* Formatting.swift in Sources */,
+				FACE00000000000000002014 /* SparklineView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		FACE00000000000000008003 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = FACE00000000000000004002 /* TokenUsageWidget */;
+			targetProxy = FACE00000000000000008002 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		FACE00000000000000006001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 15.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		FACE00000000000000006002 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 15.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = NO;
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		FACE00000000000000006003 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = TokenUsage/TokenUsage.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_LSUIElement = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.tokenusage.app;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+			};
+			name = Debug;
+		};
+		FACE00000000000000006004 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = TokenUsage/TokenUsage.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_LSUIElement = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.tokenusage.app;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+			};
+			name = Release;
+		};
+		FACE00000000000000006005 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_ENTITLEMENTS = TokenUsageWidget/TokenUsageWidget.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "Token 用量";
+				INFOPLIST_KEY_NSExtension_PointIdentifier = "com.apple.widgetkit-extension";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@executable_path/../../../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.tokenusage.app.widget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+			};
+			name = Debug;
+		};
+		FACE00000000000000006006 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_ENTITLEMENTS = TokenUsageWidget/TokenUsageWidget.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "Token 用量";
+				INFOPLIST_KEY_NSExtension_PointIdentifier = "com.apple.widgetkit-extension";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@executable_path/../../../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.tokenusage.app.widget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		FACE00000000000000007001 /* Build configuration list for PBXProject "TokenUsage" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				FACE00000000000000006001 /* Debug */,
+				FACE00000000000000006002 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		FACE00000000000000007002 /* Build configuration list for PBXNativeTarget "TokenUsage" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				FACE00000000000000006003 /* Debug */,
+				FACE00000000000000006004 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		FACE00000000000000007003 /* Build configuration list for PBXNativeTarget "TokenUsageWidget" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				FACE00000000000000006005 /* Debug */,
+				FACE00000000000000006006 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = FACE00000000000000008001 /* Project object */;
+}

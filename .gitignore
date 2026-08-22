@@ -1,0 +1,14 @@
+# 构建产物（成品包发布在 Releases）
+dist/
+
+# 系统垃圾文件
+.DS_Store
+
+# 本地真实用量数据与参考截图，绝不入库
+usage_data_*.zip
+p.png
+ScreenShot_*.png
+
+# Xcode 个人化文件
+xcuserdata/
+*.xcuserstate
