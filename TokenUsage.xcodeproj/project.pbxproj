@@ -31,6 +31,10 @@
 		FACE00000000000000002016 /* BalanceWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = FACE00000000000000001013 /* BalanceWidget.swift */; };
 		FACE00000000000000002017 /* WidgetViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = FACE00000000000000001014 /* WidgetViews.swift */; };
 		FACE00000000000000002018 /* TokenUsageWidget.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = FACE00000000000000001002 /* TokenUsageWidget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		FACE0000000000000000201B /* UsageSyncService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FACE00000000000000001018 /* UsageSyncService.swift */; };
+		FACE0000000000000000201C /* MimoSyncService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FACE00000000000000001019 /* MimoSyncService.swift */; };
+		FACE0000000000000000201D /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FACE0000000000000000101A /* OnboardingView.swift */; };
+		FACE0000000000000000201E /* SyncLoginWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = FACE0000000000000000101B /* SyncLoginWindow.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -80,6 +84,11 @@
 		FACE00000000000000001014 /* WidgetViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetViews.swift; sourceTree = "<group>"; };
 		FACE00000000000000001015 /* TokenUsageWidget.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = TokenUsageWidget.entitlements; sourceTree = "<group>"; };
 		FACE00000000000000001016 /* UsageImporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsageImporter.swift; sourceTree = "<group>"; };
+		FACE00000000000000001018 /* UsageSyncService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsageSyncService.swift; sourceTree = "<group>"; };
+		FACE00000000000000001019 /* MimoSyncService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MimoSyncService.swift; sourceTree = "<group>"; };
+		FACE0000000000000000101A /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
+		FACE0000000000000000101B /* SyncLoginWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncLoginWindow.swift; sourceTree = "<group>"; };
+		FACE0000000000000000101C /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -150,6 +159,8 @@
 				FACE0000000000000000100A /* BalanceService.swift */,
 				FACE0000000000000000100B /* APIKeyStore.swift */,
 				FACE00000000000000001016 /* UsageImporter.swift */,
+				FACE00000000000000001018 /* UsageSyncService.swift */,
+				FACE00000000000000001019 /* MimoSyncService.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -169,6 +180,8 @@
 				FACE0000000000000000100E /* ProviderCardView.swift */,
 				FACE0000000000000000100F /* SettingsView.swift */,
 				FACE00000000000000001017 /* Interactives.swift */,
+				FACE0000000000000000101A /* OnboardingView.swift */,
+				FACE0000000000000000101B /* SyncLoginWindow.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -179,6 +192,7 @@
 				FACE00000000000000001012 /* TokenUsageWidgetBundle.swift */,
 				FACE00000000000000001013 /* BalanceWidget.swift */,
 				FACE00000000000000001014 /* WidgetViews.swift */,
+				FACE0000000000000000101C /* Info.plist */,
 				FACE00000000000000001015 /* TokenUsageWidget.entitlements */,
 			);
 			path = TokenUsageWidget;
@@ -288,11 +302,15 @@
 				FACE00000000000000002008 /* BalanceService.swift in Sources */,
 				FACE00000000000000002009 /* APIKeyStore.swift in Sources */,
 				FACE00000000000000002019 /* UsageImporter.swift in Sources */,
+				FACE0000000000000000201B /* UsageSyncService.swift in Sources */,
+				FACE0000000000000000201C /* MimoSyncService.swift in Sources */,
 				FACE0000000000000000200A /* BalanceStore.swift in Sources */,
 				FACE0000000000000000200B /* MenuBarContentView.swift in Sources */,
 				FACE0000000000000000200C /* ProviderCardView.swift in Sources */,
 				FACE0000000000000000201A /* Interactives.swift in Sources */,
 				FACE0000000000000000200D /* SettingsView.swift in Sources */,
+				FACE0000000000000000201D /* OnboardingView.swift in Sources */,
+				FACE0000000000000000201E /* SyncLoginWindow.swift in Sources */,
 				FACE00000000000000002001 /* AIProvider.swift in Sources */,
 				FACE00000000000000002002 /* Models.swift in Sources */,
 				FACE00000000000000002003 /* SharedStore.swift in Sources */,
@@ -504,9 +522,8 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = "";
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = "Token 用量";
-				INFOPLIST_KEY_NSExtension_PointIdentifier = "com.apple.widgetkit-extension";
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = TokenUsageWidget/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
@@ -528,9 +545,8 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = "";
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = "Token 用量";
-				INFOPLIST_KEY_NSExtension_PointIdentifier = "com.apple.widgetkit-extension";
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = TokenUsageWidget/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",

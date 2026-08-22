@@ -21,13 +21,13 @@ macOS 15+（Apple Silicon）菜单栏应用 + 桌面小组件，实时展示 **D
   - **导入覆盖截止时刻之后的消耗实时合并**：以导入 CSV 的最大行时间戳为边界，之后的消耗用每 5 分钟余额快照的下降量推算（导入覆盖今天时，今天后续的消耗也会持续计入，不再丢失），并入统计卡与消费金额图（Key 维度与导入系列合并；模型维度按各 Key 最近一天的模型消费占比分摊，毫无可参照口径时才单列灰色「实时消耗」系列），「Tokens（实时估算）」图按各 Key 最近一天的 tokens/元 口径折算，随用随更新
 - **清除所有数据**：设置 → 数据 →「清除所有数据」，删除所有 API Key、账户、余额历史与已导入用量，连同面板偏好一并重置回首次安装状态，用于手动校准后重新配置与导入
 - **动画**：卡片入场渐显、柱状图升起 / 面积图擦除展开的加载动画、卡片悬停提亮微浮、图标按钮按压缩放回弹、刷新时圆点与图标脉动、刷新图标旋转、数字滚动过渡、tooltip 淡入缩放、加载微光占位
-- **桌面/通知中心小组件**：小号、中号两种尺寸，含余额与趋势迷你图（需 Xcode 构建，见下文）
+- **桌面/通知中心小组件**：小号、中号两种尺寸，含余额与趋势迷你图（发布包已内置，安装后主 App 运行一次即自动注册）
 - **自动刷新**：1/5/15/30 分钟可选；API Key 以 0600 权限存于 `~/Library/Application Support/TokenUsage/api_keys.json`（见下注）
 - 原生 macOS 风格：SwiftUI + Swift Charts，遵循系统外观（深浅色自适应）
 
 ## 安装（开箱即用）
 
-成品包发布在仓库的 **Releases** 页面：`TokenUsage.zip`（无 Xcode 环境下用 Command Line Tools 编译、ad-hoc 签名），解压即得 `TokenUsage.app`。
+成品包发布在仓库的 **Releases** 页面：`TokenUsage.zip`（含菜单栏 App + 桌面小组件，ad-hoc 签名），解压即得 `TokenUsage.app`。
 
 1. 解压后把 `TokenUsage.app` 拖到 `/Applications`（或直接双击运行亦可）
 2. 首次启动会弹出**初始化向导**，引导添加服务商账户并填入 API Key：
@@ -42,18 +42,22 @@ macOS 15+（Apple Silicon）菜单栏应用 + 桌面小组件，实时展示 **D
 ## 关于"控制中心"与小组件的说明
 
 - **控制中心**：macOS 不向第三方应用开放控制中心（Control Center）模块接口，业界标准做法是本应用采用的 `MenuBarExtra`——图标在菜单栏系统状态区，与控制中心同排，点击即弹出面板。
-- **小组件**：macOS 强制要求所有扩展进程必须带 sandbox 运行（系统日志：`plug-ins must be sandboxed`），而 ad-hoc 签名（无开发者 Team）的进程启用 sandbox 会在启动时被系统直接终止（`_libsecinit_appsandbox`）。因此**免安装版不包含小组件**；`TokenUsageWidget` 扩展源码与工程已就绪，需要小组件时：
-  1. 安装 Xcode 16+，打开 `TokenUsage.xcodeproj`
-  2. 两个 target 的 Signing & Capabilities 里选择你的 Team（**免费个人开发者账号即可**，Xcode → Settings → Accounts 添加 Apple ID 即可创建）
-  3. ⌘R 运行一次主 App，小组件即注册到系统；桌面右键 → 编辑小组件 → 搜索"Token 用量"
+- **小组件**：发布包已内置 `TokenUsageWidget` 扩展（ad-hoc 签名在本机可正常注册运行）。主 App 运行一次后，桌面右键 → 编辑小组件 → 搜索"Token 用量"即可添加；若列表里找不到，注销或重启一次 Mac 让 LaunchServices 刷新。
 
 ## 自行构建
 
 ```bash
-./build.sh        # 仅本机直装的菜单栏 App（不含小组件），输出 dist/TokenUsage.app
+./build.sh        # 仅需 Command Line Tools：本机直装的菜单栏 App（不含小组件），输出 dist/TokenUsage.app
 ```
 
-需要完整版（含小组件）时用 Xcode 打开 `TokenUsage.xcodeproj` 构建。
+完整版（含小组件）需要 Xcode，打开 `TokenUsage.xcodeproj` 直接 ⌘R，或命令行：
+
+```bash
+xcodebuild -scheme TokenUsage -configuration Release -derivedDataPath build/DerivedData build
+# 产物：build/DerivedData/Build/Products/Release/TokenUsage.app
+```
+
+工程两个 target 均为 Automatic 签名、`DEVELOPMENT_TEAM` 留空，此时按「Sign to Run Locally」本机签名，小组件可正常使用；填入自己的 Team ID（免费个人账号即可）亦可。
 
 ## 关于 API Key 存储的说明
 
