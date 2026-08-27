@@ -6,6 +6,10 @@ enum BalanceError: LocalizedError {
     case badURL(String)
     case badResponse(Int)
     case decodingFailed
+    /// 接口正常返回但业务层报错（如智谱「当前用户不存在coding plan」），直接透传官方提示
+    case apiMessage(String)
+    /// 智谱账号无 Coding Plan 订阅（触发按量计费余额接口的回退）
+    case noCodingPlan
 
     var errorDescription: String? {
         switch self {
@@ -14,6 +18,8 @@ enum BalanceError: LocalizedError {
         case .badURL(let raw): return "接口地址无效：\(raw)"
         case .badResponse(let code): return "请求失败 (HTTP \(code))，请检查 API Key"
         case .decodingFailed: return "无法解析接口返回"
+        case .apiMessage(let msg): return msg
+        case .noCodingPlan: return "当前账号无 Coding Plan 订阅"
         }
     }
 }
@@ -36,7 +42,7 @@ struct BalanceService {
         case .kimiCode:
             return .quota(try await fetchKimiCodeQuota(apiKey: apiKey))
         case .glm:
-            return .quota(try await fetchGLMQuota(apiKey: apiKey))
+            return try await fetchGLM(apiKey: apiKey)
         case .minimax:
             return .quota(try await fetchMiniMaxQuota(apiKey: apiKey))
         case .claude:
@@ -148,9 +154,155 @@ struct BalanceService {
         )
     }
 
-    // MARK: - GLM（智谱 Coding Plan）
+    // MARK: - GLM（智谱：Coding Plan 配额 / API 按量计费余额，自动识别）
 
-    /// GLM: GET /api/monitor/usage/quota/limit（平台订阅页自用接口，社区实测可用）。
+    /// 智谱有两套计费：Coding Plan（订阅，配额制）与 API 按量计费（余额制）。
+    /// 先查 Coding Plan 额度；账号无 Coding Plan 时回退到账户余额接口。
+    private func fetchGLM(apiKey: String) async throws -> FetchResult {
+        do {
+            return .quota(try await fetchGLMQuota(apiKey: apiKey))
+        } catch BalanceError.noCodingPlan {
+            return .balance(try await fetchGLMBalance(apiKey: apiKey))
+        }
+    }
+
+    /// GLM 按量计费余额：GET /api/biz/account/query-customer-account-report
+    ///（控制台财务总览自用接口，实测与 quota/limit 一样接受裸 API Key 鉴权）。
+    /// 响应：{ "code": 200, "data": { "balance", "availableBalance",
+    ///   "rechargeAmount"(累计充值), "giveAmount"(累计赠送), "totalSpendAmount"(累计消费)… } }
+    private func fetchGLMBalance(apiKey: String) async throws -> BalanceSnapshot {
+        let url = URL(string: "https://open.bigmodel.cn/api/biz/account/query-customer-account-report")!
+        let data = try await get(url, headers: [
+            "Authorization": apiKey,
+            "Accept-Language": "zh-CN,zh",
+            "Content-Type": "application/json",
+        ])
+        struct Response: Codable {
+            struct Payload: Codable {
+                let balance: Double?
+                let availableBalance: Double?
+            }
+            let code: Int?
+            let msg: String?
+            let data: Payload?
+        }
+        guard let decoded = try? JSONDecoder().decode(Response.self, from: data) else {
+            throw BalanceError.decodingFailed
+        }
+        guard let payload = decoded.data,
+              let balance = payload.availableBalance ?? payload.balance else {
+            if let msg = decoded.msg, !msg.isEmpty { throw BalanceError.apiMessage(msg) }
+            throw BalanceError.decodingFailed
+        }
+        // 接口不给「当前」赠送/充值拆分（rechargeAmount 是累计值），全部计入充值余额
+        return BalanceSnapshot(
+            timestamp: Date(),
+            totalBalance: balance,
+            grantedBalance: 0,
+            toppedUpBalance: balance,
+            currency: "CNY",
+            isAvailable: balance > 0
+        )
+    }
+
+    /// GLM 按量计费的账单信息：账户累计 + 本月按模型 + 历史按月。
+    /// 三个接口都是控制台财务页自用接口，均实测接受裸 API Key 鉴权：
+    /// - /api/biz/account/query-customer-account-report（累计消费/充值/赠送）
+    /// - /api/finance/chartBill/product/{yyyy-MM}（本月按模型金额 + tokens）
+    /// - /api/finance/monthlyBill/monthlyStatisticsChart（历史按月金额）
+    func fetchGLMBilling(apiKey: String) async throws -> GLMBillingInfo {
+        let headers = [
+            "Authorization": apiKey,
+            "Accept-Language": "zh-CN,zh",
+            "Content-Type": "application/json",
+        ]
+
+        // 1) 账户累计
+        let reportData = try await get(
+            URL(string: "https://open.bigmodel.cn/api/biz/account/query-customer-account-report")!,
+            headers: headers)
+        struct AccountReport: Codable {
+            struct Payload: Codable {
+                let totalSpendAmount: Double?
+                let rechargeAmount: Double?
+                let giveAmount: Double?
+            }
+            let code: Int?
+            let data: Payload?
+        }
+        guard let report = try? JSONDecoder().decode(AccountReport.self, from: reportData),
+              let payload = report.data else {
+            throw BalanceError.decodingFailed
+        }
+
+        let monthFmt = DateFormatter()
+        monthFmt.dateFormat = "yyyy-MM"
+        let currentMonth = monthFmt.string(from: Date())
+
+        // 2) 本月按模型（失败不致命：账单区仍显示累计部分）
+        struct ChartBill: Codable {
+            struct Row: Codable {
+                let modelCode: String?
+                let settlementAmount: Double?
+                let usageCount: Double?
+            }
+            let rows: [Row]?
+        }
+        var byModel: [GLMBillingInfo.ModelSpend] = []
+        if let chartData = try? await get(
+            URL(string: "https://open.bigmodel.cn/api/finance/chartBill/product/\(currentMonth)?month=\(currentMonth)")!,
+            headers: headers),
+           let chart = try? JSONDecoder().decode(ChartBill.self, from: chartData) {
+            byModel = (chart.rows ?? []).compactMap { row in
+                guard let model = row.modelCode else { return nil }
+                return GLMBillingInfo.ModelSpend(
+                    model: model,
+                    amount: row.settlementAmount ?? 0,
+                    tokens: Int64(row.usageCount ?? 0)
+                )
+            }.sorted { $0.amount > $1.amount }
+        }
+
+        // 3) 历史按月（最多回看 24 个月；去掉前导无消费月份）
+        var monthly: [GLMBillingInfo.MonthSpend] = []
+        let cal = Calendar.current
+        if let start = cal.date(byAdding: .month, value: -23, to: Date()),
+           let chartData = try? await get(
+               URL(string: "https://open.bigmodel.cn/api/finance/monthlyBill/monthlyStatisticsChart?needFillMissingMonths=true&billingMonthStart=\(monthFmt.string(from: start))&billingMonthEnd=\(currentMonth)")!,
+               headers: headers) {
+            struct MonthlyChart: Codable {
+                struct Record: Codable {
+                    let billingMonth: String?
+                    let settlementAmount: Double?
+                }
+                let consumptionRecord: [Record]?
+            }
+            struct MonthlyResp: Codable {
+                let data: MonthlyChart?
+            }
+            if let resp = try? JSONDecoder().decode(MonthlyResp.self, from: chartData) {
+                var rows = (resp.data?.consumptionRecord ?? []).compactMap { r -> GLMBillingInfo.MonthSpend? in
+                    guard let m = r.billingMonth else { return nil }
+                    return GLMBillingInfo.MonthSpend(month: m, amount: r.settlementAmount ?? 0)
+                }
+                while rows.first?.amount == 0 { rows.removeFirst() }
+                monthly = rows
+            }
+        }
+
+        return GLMBillingInfo(
+            updatedAt: Date(),
+            totalSpend: payload.totalSpendAmount ?? 0,
+            rechargeAmount: payload.rechargeAmount ?? 0,
+            giveAmount: payload.giveAmount ?? 0,
+            monthAmount: byModel.reduce(0) { $0 + $1.amount },
+            monthTokens: byModel.reduce(0) { $0 + $1.tokens },
+            byModel: byModel,
+            monthly: monthly
+        )
+    }
+
+    /// GLM Coding Plan: GET /api/monitor/usage/quota/limit（平台订阅页自用接口，社区实测可用）。
     /// percentage 为已用百分比；nextResetTime 为毫秒时间戳。
     /// 响应：{ "code": 200, "data": { "limits": [ { "type": "TIME_LIMIT", ... },
     ///   { "type": "TOKENS_LIMIT", ... } ], "level": "..." } }
@@ -176,10 +328,19 @@ struct BalanceService {
                 let level: String?
             }
             let code: Int?
+            let msg: String?
             let data: Payload?
         }
-        guard let decoded = try? JSONDecoder().decode(Response.self, from: data),
-              let payload = decoded.data else {
+        guard let decoded = try? JSONDecoder().decode(Response.self, from: data) else {
+            throw BalanceError.decodingFailed
+        }
+        // 业务层报错（HTTP 200 但 code != 200，如无 Coding Plan 订阅）
+        guard let payload = decoded.data else {
+            if let msg = decoded.msg, !msg.isEmpty {
+                // 无 Coding Plan 的按量计费账号：通知上层回退到余额接口
+                if msg.lowercased().contains("coding plan") { throw BalanceError.noCodingPlan }
+                throw BalanceError.apiMessage(msg)
+            }
             throw BalanceError.decodingFailed
         }
         let timeLimit = payload.limits?.first { $0.type == "TIME_LIMIT" }

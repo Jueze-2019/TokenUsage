@@ -11,6 +11,8 @@ final class BalanceStore: ObservableObject {
     @Published private(set) var dataByKey: [UUID: ProviderData] = [:]
     @Published private(set) var usageRecords: [UsageRecord] = []
     @Published private(set) var quotaByKey: [UUID: ProviderQuota] = [:]
+    /// GLM 按量计费账号的账单信息（控制台财务接口的官方值，随余额刷新节流同步）
+    @Published private(set) var glmBillingByKey: [UUID: GLMBillingInfo] = [:]
     /// 各账户导入数据的精确覆盖截止时间（导入文件中的最大行时间戳）
     @Published private(set) var usageCoverageEnd: [UUID: Date] = [:]
     @Published private(set) var isRefreshing = false
@@ -224,6 +226,7 @@ final class BalanceStore: ObservableObject {
         keys.removeAll { $0.id == key.id }
         dataByKey.removeValue(forKey: key.id)
         quotaByKey.removeValue(forKey: key.id)
+        glmBillingByKey.removeValue(forKey: key.id)
         saveKeys()
         saveCache()
     }
@@ -399,6 +402,7 @@ final class BalanceStore: ObservableObject {
         dataByKey = [:]
         usageRecords = []
         quotaByKey = [:]
+        glmBillingByKey = [:]
         usageCoverageEnd = [:]
         lastRefresh = nil
         importError = nil
@@ -431,6 +435,11 @@ final class BalanceStore: ObservableObject {
     /// 某 Key 的配额快照（配额制 / 返回百分比的自定义接口）
     func quota(for key: ProviderKey) -> ProviderQuota? {
         quotaByKey[key.id]
+    }
+
+    /// 某 Key 的 GLM 账单信息（仅按量计费的 GLM 账号有）
+    func glmBilling(for key: ProviderKey) -> GLMBillingInfo? {
+        glmBillingByKey[key.id]
     }
 
     /// 某服务商下所有 Key 的数据
@@ -522,7 +531,8 @@ final class BalanceStore: ObservableObject {
                 continue
             }
             do {
-                switch try await service.fetch(for: key.provider, apiKey: apiKey, endpoint: endpoint) {
+                let result = try await service.fetch(for: key.provider, apiKey: apiKey, endpoint: endpoint)
+                switch result {
                 case .balance(let snapshot):
                     data.snapshots.append(snapshot)
                     data.snapshots = prune(data.snapshots)
@@ -531,6 +541,10 @@ final class BalanceStore: ObservableObject {
                     quotaByKey[key.id] = quota
                 }
                 data.lastError = nil
+                // GLM 按量计费账号：顺手节流同步账单信息（累计/本月按模型/月度历史）
+                if key.provider == .glm, case .balance = result {
+                    await syncGLMBillingIfNeeded(for: key, apiKey: apiKey)
+                }
             } catch {
                 data.lastError = error.localizedDescription
             }
@@ -573,6 +587,22 @@ final class BalanceStore: ObservableObject {
         saveCache()
     }
 
+    /// GLM 账单同步的节流间隔：账单接口按分钟级刷新没意义，30 分钟一次足够
+    private static let glmBillingMinInterval: TimeInterval = 1800
+    private var lastGLMBillingSync: [UUID: Date] = [:]
+
+    /// GLM 按量计费账号的账单信息同步（累计消费/充值/赠送 + 本月按模型 + 历史按月）。
+    /// 接口都接受 API Key 鉴权，无需官网登录态；失败静默（下一轮再说）。
+    private func syncGLMBillingIfNeeded(for key: ProviderKey, apiKey: String) async {
+        let last = lastGLMBillingSync[key.id] ?? glmBillingByKey[key.id]?.updatedAt ?? .distantPast
+        guard Date().timeIntervalSince(last) >= Self.glmBillingMinInterval else { return }
+        lastGLMBillingSync[key.id] = Date()
+        if let info = try? await service.fetchGLMBilling(apiKey: apiKey) {
+            glmBillingByKey[key.id] = info
+            saveCache()
+        }
+    }
+
     // MARK: - 持久化 / 小组件同步
 
     private func loadCache() {
@@ -590,6 +620,11 @@ final class BalanceStore: ObservableObject {
             for (idString, quota) in cache.quotaByKey {
                 if let id = UUID(uuidString: idString) {
                     quotaByKey[id] = quota
+                }
+            }
+            for (idString, billing) in cache.glmBilling {
+                if let id = UUID(uuidString: idString) {
+                    glmBillingByKey[id] = billing
                 }
             }
             for (idString, end) in cache.usageCoverageEnd {
@@ -627,7 +662,7 @@ final class BalanceStore: ObservableObject {
         for (id, quota) in quotaByKey {
             quotaDict[id.uuidString] = quota
         }
-        SharedStore.write(SharedCache(
+        var cache = SharedCache(
             keys: keys,
             dataByKey: dict,
             usageRecords: usageRecords,
@@ -636,7 +671,11 @@ final class BalanceStore: ObservableObject {
                 uniqueKeysWithValues: usageCoverageEnd.map { ($0.key.uuidString, $0.value) }
             ),
             updatedAt: Date()
-        ))
+        )
+        cache.glmBilling = Dictionary(
+            uniqueKeysWithValues: glmBillingByKey.map { ($0.key.uuidString, $0.value) }
+        )
+        SharedStore.write(cache)
         WidgetCenter.shared.reloadAllTimelines()
     }
 

@@ -76,15 +76,22 @@ private struct MenuBarLabel: View {
             guard let provider = AIProvider(rawValue: menuBarSource) else { return nil }
             if provider.usesQuota {
                 let quotas = store.keys(for: provider).compactMap { store.quota(for: $0) }
-                guard !quotas.isEmpty else { return nil }
-                let percents = quotas.map {
-                    menuBarQuotaScope == "window" ? $0.windowRemainingPercent : $0.weeklyRemainingPercent
+                if !quotas.isEmpty {
+                    let percents = quotas.map {
+                        menuBarQuotaScope == "window" ? $0.windowRemainingPercent : $0.weeklyRemainingPercent
+                    }
+                    return "\(percents.reduce(0, +) / percents.count)%"
                 }
-                return "\(percents.reduce(0, +) / percents.count)%"
+                // GLM 按量计费账号：配额接口回退到余额，这里也按余额显示
+                if store.hasAnyData(for: provider) {
+                    return Formatting.compactCNY(store.totalBalance(for: provider))
+                }
+            } else if store.hasAnyData(for: provider) {
+                return Formatting.compactCNY(store.totalBalance(for: provider))
             }
-            return store.hasAnyData(for: provider)
-                ? Formatting.compactCNY(store.totalBalance(for: provider))
-                : nil
+            // 选中的服务商暂无数据（如 Key 刚重置、接口报错）时回退到全部余额合计，
+            // 避免菜单栏什么都不显示看起来像坏了
+            return store.hasAnyData ? Formatting.compactCNY(store.totalBalance) : nil
         }
     }
 }

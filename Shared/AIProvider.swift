@@ -147,7 +147,7 @@ enum AIProvider: String, Codable, CaseIterable, Identifiable, Sendable {
         case .kimiCode:
             return "填写 Kimi Code 会员的 API Key，用于查询订阅额度。"
         case .glm:
-            return "填写智谱开放平台的 API Key，查询 Coding Plan 额度。"
+            return "填写智谱开放平台的 API Key。Coding Plan 账号显示订阅额度；按量计费账号显示余额，自动识别。"
         case .minimax:
             return "填写 MiniMax 开放平台的 API Key，查询 Coding Plan / Token Plan 额度。"
         case .claude:

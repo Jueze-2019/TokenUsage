@@ -15,8 +15,9 @@ extension ButtonStyle where Self == ScaleButtonStyle {
     static var scale: ScaleButtonStyle { ScaleButtonStyle() }
 }
 
-/// 卡片悬停反馈：背景提亮 + 细描边 + 轻微上浮。
-/// 只作用在渲染层（scaleEffect 不改布局），列表内使用不会引起抖动。
+/// 卡片悬停反馈：背景提亮 + 细描边。
+/// 不做 scaleEffect 放大：面板卡片在 ScrollView 里横向撑满，scale 不改布局、
+/// 放大部分会被滚动区边界直接裁掉（贴边卡片边缘被切）。
 struct InteractiveCardModifier: ViewModifier {
     var cornerRadius: CGFloat = 10
     @State private var hovering = false
@@ -31,7 +32,6 @@ struct InteractiveCardModifier: ViewModifier {
                 RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
                     .strokeBorder(.primary.opacity(hovering ? 0.12 : 0), lineWidth: 0.5)
             )
-            .scaleEffect(hovering ? 1.012 : 1)
             .animation(.spring(duration: 0.28), value: hovering)
             .onHover { hovering = $0 }
     }

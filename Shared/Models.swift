@@ -504,6 +504,32 @@ extension Array where Element == UsageRecord {
     }
 }
 
+/// GLM 按量计费账号的账单信息（智谱控制台财务接口，按 Key 缓存，节流刷新）。
+/// 这些维度是接口直接给的官方精确值，不参与余额差额估算。
+struct GLMBillingInfo: Codable, Sendable {
+    /// 本月按模型的消耗
+    struct ModelSpend: Codable, Sendable, Identifiable {
+        var id: String { model }
+        var model: String
+        var amount: Double   // 金额（元）
+        var tokens: Int64    // tokens
+    }
+    /// 历史按月消耗（金额）
+    struct MonthSpend: Codable, Sendable, Identifiable {
+        var id: String { month }
+        var month: String    // "2026-08"
+        var amount: Double
+    }
+    var updatedAt: Date
+    var totalSpend: Double      // 累计消费（注册至今，官方口径）
+    var rechargeAmount: Double  // 累计充值
+    var giveAmount: Double      // 累计赠送
+    var monthAmount: Double     // 本月消费金额
+    var monthTokens: Int64      // 本月 tokens
+    var byModel: [ModelSpend] = []
+    var monthly: [MonthSpend] = []
+}
+
 /// 通过 App Group 与小组件共享的缓存文件结构。
 struct SharedCache: Codable, Sendable {
     var keys: [ProviderKey] = []
@@ -513,6 +539,8 @@ struct SharedCache: Codable, Sendable {
     /// 各账户导入数据的精确覆盖截止时间（key = ProviderAccount.id.uuidString）。
     /// 实时消耗从该时刻起算：截止时刻（含）之前以导入数据为准，之后用余额快照差额推算。
     var usageCoverageEnd: [String: Date] = [:]
+    /// GLM 按量计费账号的账单信息（key = ProviderKey.id.uuidString）
+    var glmBilling: [String: GLMBillingInfo] = [:]
     var updatedAt: Date = Date()
 
     init() {}
@@ -527,7 +555,7 @@ struct SharedCache: Codable, Sendable {
         self.updatedAt = updatedAt
     }
 
-    // 向后兼容：旧版缓存没有 usageRecords / quotaByKey / usageCoverageEnd 字段
+    // 向后兼容：旧版缓存没有 usageRecords / quotaByKey / usageCoverageEnd / glmBilling 字段
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         keys = try container.decodeIfPresent([ProviderKey].self, forKey: .keys) ?? []
@@ -535,6 +563,7 @@ struct SharedCache: Codable, Sendable {
         usageRecords = try container.decodeIfPresent([UsageRecord].self, forKey: .usageRecords) ?? []
         quotaByKey = try container.decodeIfPresent([String: ProviderQuota].self, forKey: .quotaByKey) ?? [:]
         usageCoverageEnd = try container.decodeIfPresent([String: Date].self, forKey: .usageCoverageEnd) ?? [:]
+        glmBilling = try container.decodeIfPresent([String: GLMBillingInfo].self, forKey: .glmBilling) ?? [:]
         updatedAt = try container.decodeIfPresent(Date.self, forKey: .updatedAt) ?? Date()
     }
 }

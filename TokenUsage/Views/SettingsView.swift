@@ -304,8 +304,9 @@ struct SettingsView: View {
                 .textFieldStyle(.roundedBorder)
         }
 
-        // 金额制服务商：累计消费校准基数（注册至今、导入数据覆盖不到的历史消费）
-        if !provider.usesQuota {
+        // 金额制服务商：累计消费校准基数（注册至今、导入数据覆盖不到的历史消费）。
+        // GLM 同时支持配额制（Coding Plan）与余额制（按量计费），后者需要此校准，故也显示
+        if !provider.usesQuota || provider == .glm {
             HStack {
                 Text("累计消费校准")
                     .foregroundStyle(.secondary)

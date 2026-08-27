@@ -34,6 +34,8 @@ struct ProviderCardView: View {
     @AppStorage("module.liveEstimate") private var showLiveEstimate = true
     /// 离屏渲染（TU_HEADLESS）跳过入场动画，否则截图会抓到半透明中间帧
     @State private var appeared = ProcessInfo.processInfo.environment["TU_HEADLESS"] != nil
+    /// GLM 月度消耗图的悬停月份（与其他图表的 hoverDay 独立，互不干扰）
+    @State private var glmHoverMonth: Date?
 
     init(provider: AIProvider, range: UsageRange) {
         self.provider = provider
@@ -80,9 +82,16 @@ struct ProviderCardView: View {
     /// 简洁模式：只看所选时间段消耗与剩余
     private var isSimple: Bool { cardMode == "simple" }
 
-    /// 配额布局：配额制服务商恒为真；自定义接口服务商在 Key 拿到配额快照时切换
+    /// 配额布局：配额制服务商恒为真——除非它一个配额快照都没有但有余额数据
+    ///（GLM 按量计费账号就是这种：quota 接口回退到了余额接口）；
+    /// 自定义接口服务商在 Key 拿到配额快照时切换
     private var quotaLayout: Bool {
-        if provider.usesQuota { return true }
+        if provider.usesQuota {
+            let keys = visibleAccounts.flatMap { store.keys(for: $0) }
+            if keys.contains(where: { store.quota(for: $0) != nil }) { return true }
+            let hasBalance = keys.contains { store.data(for: $0)?.latest != nil }
+            return !hasBalance
+        }
         guard provider.usesCustomEndpoint else { return false }
         let keys = visibleAccounts.flatMap { store.keys(for: $0) }
         return !keys.isEmpty && keys.allSatisfy { store.quota(for: $0) != nil }
@@ -120,6 +129,27 @@ struct ProviderCardView: View {
         }
         return name
     }
+
+    /// 月粒度的 x 轴刻度标签：2025/3（带年份，跨年不歧义）
+    private static let monthAxisFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy/M"
+        return formatter
+    }()
+
+    /// GLM 月度账单字符串解析："2026-08" → Date（月初）
+    private static let glmMonthParser: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM"
+        return formatter
+    }()
+
+    /// GLM 月度图 tooltip 标题：2026年8月
+    private static let glmTooltipMonthFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy年M月"
+        return formatter
+    }()
 
     // MARK: - 聚合快照（性能关键）
 
@@ -591,6 +621,11 @@ struct ProviderCardView: View {
                         }
                     }
                 }
+            }
+            // GLM 按量计费：官方账单区（累计消费/充值/赠送 + 本月按模型 + 月度历史），
+            // 都是控制台财务接口的精确值，不走用量估算那套
+            if provider == .glm, !quotaLayout {
+                glmBillingSection
             }
             // 用量区：任何有记录的服务商都显示统计卡与图表；无数据时按服务商给引导
             if agg.hasRecords || agg.hasLiveSpend {
@@ -1066,18 +1101,181 @@ struct ProviderCardView: View {
         }
     }
 
+    // MARK: - GLM 账单区（按量计费账号：控制台财务接口的官方数据）
+
+    /// 可见 GLM Key 的合并账单。
+    /// 注意：智谱账单接口按「账户」出数，同一账户配多把 Key 时各 Key 返回相同数据，
+    /// 合并口径与面板其他模块一致（直接相加），单 Key/单账户场景即精确值。
+    private var glmBillingMerged: GLMBillingInfo? {
+        let infos = visibleKeys.compactMap { store.glmBilling(for: $0) }
+        guard !infos.isEmpty else { return nil }
+        if infos.count == 1 { return infos[0] }
+        var byModel: [String: (amount: Double, tokens: Int64)] = [:]
+        var monthly: [String: Double] = [:]
+        for info in infos {
+            for m in info.byModel {
+                let cur = byModel[m.model] ?? (0, 0)
+                byModel[m.model] = (cur.amount + m.amount, cur.tokens + m.tokens)
+            }
+            for m in info.monthly { monthly[m.month] = (monthly[m.month] ?? 0) + m.amount }
+        }
+        return GLMBillingInfo(
+            updatedAt: infos.map(\.updatedAt).max() ?? Date(),
+            totalSpend: infos.reduce(0) { $0 + $1.totalSpend },
+            rechargeAmount: infos.reduce(0) { $0 + $1.rechargeAmount },
+            giveAmount: infos.reduce(0) { $0 + $1.giveAmount },
+            monthAmount: byModel.values.reduce(0) { $0 + $1.amount },
+            monthTokens: byModel.values.reduce(0) { $0 + $1.tokens },
+            byModel: byModel.map { .init(model: $0.key, amount: $0.value.amount, tokens: $0.value.tokens) }
+                .sorted { $0.amount > $1.amount },
+            monthly: monthly.map { .init(month: $0.key, amount: $0.value) }.sorted { $0.month < $1.month }
+        )
+    }
+
+    @ViewBuilder
+    private var glmBillingSection: some View {
+        if let billing = glmBillingMerged {
+            VStack(spacing: 8) {
+                // 账户累计（官方口径，不用手动校准）
+                HStack(spacing: 8) {
+                    statCard(title: "累计消费", value: Formatting.cny(billing.totalSpend), unit: nil,
+                             subtitle: nil, dot: provider.accentColor)
+                    statCard(title: "累计充值", value: Formatting.cny(billing.rechargeAmount), unit: nil)
+                    statCard(title: "累计赠送", value: Formatting.cny(billing.giveAmount), unit: nil)
+                }
+                // 本月消耗 + 按模型明细
+                VStack(alignment: .leading, spacing: 6) {
+                    HStack(alignment: .firstTextBaseline, spacing: 4) {
+                        Text("本月消耗")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                        Spacer()
+                        Text(Formatting.cny(billing.monthAmount))
+                            .font(.system(size: 16, weight: .bold, design: .rounded))
+                            .foregroundStyle(provider.accentColor)
+                            .monospacedDigit()
+                            .contentTransition(.numericText())
+                        Text("CNY")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                    }
+                    HStack {
+                        Text("本月 Tokens")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                        Spacer()
+                        Text(Formatting.grouped(billing.monthTokens))
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                            .monospacedDigit()
+                    }
+                    ForEach(billing.byModel) { m in
+                        HStack(spacing: 6) {
+                            Circle()
+                                .fill(provider.accentColor)
+                                .frame(width: 5, height: 5)
+                            Text(Self.displayModelName(m.model))
+                                .font(.caption)
+                                .lineLimit(1)
+                            Spacer()
+                            Text("\(Formatting.grouped(m.tokens)) tokens")
+                                .font(.caption2)
+                                .foregroundStyle(.secondary)
+                                .monospacedDigit()
+                            Text(Formatting.cny(m.amount))
+                                .font(.caption)
+                                .monospacedDigit()
+                        }
+                    }
+                }
+                .padding(10)
+                .interactiveCardBackground()
+                // 月度消耗历史
+                if billing.monthly.count > 1 {
+                    let monthlyItems = billing.monthly.compactMap { m -> (date: Date, amount: Double)? in
+                        guard let d = Self.glmMonthParser.date(from: m.month) else { return nil }
+                        return (d, m.amount)
+                    }
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text("月度消耗")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                        Chart(monthlyItems, id: \.date) { item in
+                            BarMark(
+                                x: .value("月份", item.date, unit: .month),
+                                y: .value("金额", item.amount)
+                            )
+                            .foregroundStyle(provider.accentColor)
+                            .cornerRadius(3)
+                            .opacity(glmHoverMonth == nil || item.date == glmHoverMonth ? 1 : 0.55)
+                            if let glmHoverMonth {
+                                RuleMark(x: .value("月份", glmHoverMonth, unit: .month))
+                                    .foregroundStyle(Color.secondary.opacity(0.25))
+                                    .lineStyle(StrokeStyle(lineWidth: 1))
+                            }
+                        }
+                        .chartLegend(.hidden)
+                        .chartXAxis {
+                            AxisMarks(values: .automatic(desiredCount: 6)) { value in
+                                AxisValueLabel {
+                                    if let date = value.as(Date.self) {
+                                        Text(Self.monthAxisFormatter.string(from: date))
+                                            .font(.system(size: 9))
+                                    }
+                                }
+                            }
+                        }
+                        .chartYAxis {
+                            AxisMarks(position: .leading) { value in
+                                AxisValueLabel {
+                                    if let v = value.as(Double.self) {
+                                        Text(Formatting.compactCNY(v))
+                                            .font(.system(size: 9))
+                                    }
+                                }
+                                AxisGridLine()
+                            }
+                        }
+                        .chartOverlay { proxy in
+                            HoverTracker(proxy: proxy, day: glmHoverMonth,
+                                         setDay: { glmHoverMonth = $0 }, bucketUnit: .month) {
+                                if let month = glmHoverMonth,
+                                   let item = monthlyItems.first(where: {
+                                       Calendar.current.isDate($0.date, equalTo: month, toGranularity: .month)
+                                   }) {
+                                    ChartTooltip(
+                                        day: month,
+                                        rows: [.init(name: "消费金额", color: provider.accentColor,
+                                                     text: Formatting.cny(item.amount))],
+                                        title: Self.glmTooltipMonthFormatter.string(from: month)
+                                    )
+                                }
+                            }
+                        }
+                        .frame(height: 90)
+                    }
+                    .padding(10)
+                    .interactiveCardBackground()
+                }
+            }
+        }
+    }
+
     // MARK: - 导入用量区（DeepSeek 风格：筛选 → 统计卡 → 图表）
 
     /// 用量区：统计卡 → 消费金额图 → 各模型图 → 实时估算图（各模块可在设置中显隐）。
     /// 今天/昨天（小时粒度）：横轴固定 00:00–24:00；导入的当日合计以半透明跨幅柱呈现
     /// （平台导出按天聚合，拆不到小时），覆盖边界后的实时记录画逐小时细柱。
     private func usageSection(_ agg: Agg) -> some View {
-        VStack(alignment: .leading, spacing: 10) {
-            if showStatCards { statCardsRow(agg) }
+        // GLM 按量计费：账单区（上方）已是官方精确数据；这里只保留余额差额驱动的
+        // 消费金额图。请求次数 / Tokens 明细 / 模型图对 GLM 无数据来源，显示一排 0 反而像坏了
+        let glmBalanceMode = provider == .glm && !quotaLayout
+        return VStack(alignment: .leading, spacing: 10) {
+            if showStatCards, !glmBalanceMode { statCardsRow(agg) }
             if showCostChart { costChartCard(agg) }
-            if range.isHourly {
+            if !glmBalanceMode, range.isHourly {
                 hourlyCaption
-            } else {
+            } else if !glmBalanceMode {
                 if range == .all { aggregationCaption(agg) }
                 if showModelCharts {
                     // 每个有数据的模型独立一节：Tokens 柱状图 + 请求次数面积图
@@ -1087,7 +1285,7 @@ struct ProviderCardView: View {
                 }
             }
             // Tokens 图：小时粒度 = 小时级导入记录逐小时柱 + 天粒度合计跨幅柱 + 实时估算；天粒度 = 仅实时估算
-            if showLiveEstimate, agg.showLiveTokens {
+            if showLiveEstimate, agg.showLiveTokens, !glmBalanceMode {
                 liveTokensCard(agg)
             }
         }
