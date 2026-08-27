@@ -31,6 +31,10 @@ struct SettingsView: View {
     @AppStorage("module.costChart") private var showCostChart = true
     @AppStorage("module.modelCharts") private var showModelCharts = true
     @AppStorage("module.liveEstimate") private var showLiveEstimate = true
+    /// 启动时自动检查更新（默认开）
+    @AppStorage("autoUpdateCheck") private var autoUpdateCheck = true
+    /// 自更新服务（单例，状态跨设置窗口开关保持）
+    @ObservedObject private var updater = UpdateService.shared
 
     private var selectedProvider: AIProvider {
         AIProvider(rawValue: selectedProviderRaw) ?? .deepseek
@@ -127,6 +131,46 @@ struct SettingsView: View {
                     }
                 }
                 Text("金额制服务商显示剩余余额；配额制（Kimi Code 等）按所选口径显示剩余百分比。")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
+
+            Section("软件更新") {
+                HStack {
+                    Text("当前版本")
+                    Spacer()
+                    Text("v\(updater.currentVersion)")
+                        .foregroundStyle(.secondary)
+                        .monospacedDigit()
+                }
+                Toggle("自动检查更新", isOn: $autoUpdateCheck)
+                HStack {
+                    Button {
+                        Task { await updater.check(manual: true) }
+                    } label: {
+                        if case .checking = updater.state {
+                            ProgressView()
+                                .controlSize(.small)
+                                .padding(.trailing, 2)
+                            Text("正在检查…")
+                        } else {
+                            Text("检查更新")
+                        }
+                    }
+                    .disabled(updater.state == .checking || updater.state == .downloading
+                        || updater.state == .installing)
+                    Spacer()
+                    updateStatusView
+                }
+                if case .available(let version) = updater.state {
+                    Button {
+                        Task { await updater.downloadAndInstall() }
+                    } label: {
+                        Label("下载并安装 v\(version)", systemImage: "arrow.down.circle.fill")
+                    }
+                    .buttonStyle(.borderedProminent)
+                }
+                Text("更新来自 GitHub Releases；开启自动检查后，每天首次启动时静默检查一次。")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
             }
@@ -416,6 +460,38 @@ struct SettingsView: View {
             get: { store.refreshInterval },
             set: { store.refreshInterval = $0 }
         )
+    }
+
+    /// 检查更新按钮右侧的状态文字
+    @ViewBuilder
+    private var updateStatusView: some View {
+        switch updater.state {
+        case .idle:
+            EmptyView()
+        case .checking:
+            EmptyView()
+        case .upToDate(let latest):
+            Label("已是最新（v\(latest)）", systemImage: "checkmark.circle.fill")
+                .foregroundStyle(.green)
+                .font(.footnote)
+        case .available(let version):
+            Label("发现新版本 v\(version)", systemImage: "arrow.down.circle.fill")
+                .foregroundStyle(.orange)
+                .font(.footnote)
+        case .downloading:
+            Text("正在下载…")
+                .foregroundStyle(.secondary)
+                .font(.footnote)
+        case .installing:
+            Text("正在安装，应用将自动重启…")
+                .foregroundStyle(.secondary)
+                .font(.footnote)
+        case .failed(let message):
+            Text(message)
+                .foregroundStyle(.red)
+                .font(.footnote)
+                .lineLimit(2)
+        }
     }
 }
 

@@ -46,6 +46,11 @@ final class BalanceStore: ObservableObject {
         loadCache()
         scheduleTimer()
         Task { await refresh() }
+        // 自动检查更新：延迟 5 秒，避开启动时的数据加载网络高峰（默认开，可在设置关闭）
+        Task { @MainActor in
+            try? await Task.sleep(nanoseconds: 5_000_000_000)
+            await UpdateService.shared.checkIfNeeded()
+        }
         // 首次安装（无任何 Key 且未走过引导）时弹出初始化向导。
         // BalanceStore 在 App 启动构建场景时必然创建，是可靠的启动钩子；
         // 延迟约 1 秒等窗口环境就绪；TU_HEADLESS 供离屏渲染工具跳过弹窗。

@@ -11,10 +11,16 @@ struct MenuBarContentView: View {
     /// 离屏渲染（TU_HEADLESS）跳过入场动画，否则截图会抓到半透明中间帧
     @State private var cardsAppeared = ProcessInfo.processInfo.environment["TU_HEADLESS"] != nil
     @State private var contentHeight: CGFloat = 0
+    /// 更新提示横幅（本次运行内可关闭）
+    @State private var updateBannerDismissed = false
+    @ObservedObject private var updater = UpdateService.shared
 
     var body: some View {
         VStack(spacing: 12) {
             header
+            if let updateVersion = updater.availableVersion, !updateBannerDismissed {
+                updateBanner(version: updateVersion)
+            }
             filterRow
             Divider()
             content
@@ -98,6 +104,45 @@ struct MenuBarContentView: View {
                     .foregroundStyle(.secondary)
             }
         }
+    }
+
+    /// 发现新版本时的顶部横幅：一键下载安装，或本次运行内关闭
+    private func updateBanner(version: String) -> some View {
+        HStack(spacing: 8) {
+            Image(systemName: "arrow.down.circle.fill")
+                .foregroundStyle(.orange)
+            Text("发现新版本 v\(version)")
+                .font(.callout)
+                .fontWeight(.medium)
+            Spacer()
+            if updater.state == .downloading {
+                Text("下载中…")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            } else if updater.state == .installing {
+                Text("安装中…")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            } else {
+                Button("更新") {
+                    Task { await updater.downloadAndInstall() }
+                }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.small)
+                Button {
+                    updateBannerDismissed = true
+                } label: {
+                    Image(systemName: "xmark")
+                        .font(.caption)
+                }
+                .buttonStyle(.borderless)
+                .foregroundStyle(.secondary)
+                .help("本次不再提示")
+            }
+        }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 8)
+        .background(.orange.opacity(0.12), in: RoundedRectangle(cornerRadius: 8))
     }
 
     private var filterRow: some View {

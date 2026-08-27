@@ -35,6 +35,7 @@
 		FACE0000000000000000201C /* MimoSyncService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FACE00000000000000001019 /* MimoSyncService.swift */; };
 		FACE0000000000000000201D /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FACE0000000000000000101A /* OnboardingView.swift */; };
 		FACE0000000000000000201E /* SyncLoginWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = FACE0000000000000000101B /* SyncLoginWindow.swift */; };
+		FACE0000000000000000201F /* UpdateService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FACE0000000000000000101D /* UpdateService.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -89,6 +90,7 @@
 		FACE0000000000000000101A /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		FACE0000000000000000101B /* SyncLoginWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncLoginWindow.swift; sourceTree = "<group>"; };
 		FACE0000000000000000101C /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		FACE0000000000000000101D /* UpdateService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateService.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -161,6 +163,7 @@
 				FACE00000000000000001016 /* UsageImporter.swift */,
 				FACE00000000000000001018 /* UsageSyncService.swift */,
 				FACE00000000000000001019 /* MimoSyncService.swift */,
+				FACE0000000000000000101D /* UpdateService.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -304,6 +307,7 @@
 				FACE00000000000000002019 /* UsageImporter.swift in Sources */,
 				FACE0000000000000000201B /* UsageSyncService.swift in Sources */,
 				FACE0000000000000000201C /* MimoSyncService.swift in Sources */,
+				FACE0000000000000000201F /* UpdateService.swift in Sources */,
 				FACE0000000000000000200A /* BalanceStore.swift in Sources */,
 				FACE0000000000000000200B /* MenuBarContentView.swift in Sources */,
 				FACE0000000000000000200C /* ProviderCardView.swift in Sources */,
@@ -484,7 +488,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.tokenusage.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -507,7 +511,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.tokenusage.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
