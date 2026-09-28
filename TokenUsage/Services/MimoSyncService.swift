@@ -40,6 +40,15 @@ enum MimoSyncService {
         let currency: String?
     }
 
+    /// 轻量同步结果（定时刷新用）：只含当前 + 上月的明细，其余同 SyncOutput
+    struct LightSyncOutput {
+        let records: [UsageRecord]
+        let coverageEnd: Date
+        let totalCost: Double?
+        let balance: Double?
+        let currency: String?
+    }
+
     // MARK: - 响应模型
 
     private struct Envelope<T: Decodable>: Decodable {
@@ -119,6 +128,38 @@ enum MimoSyncService {
         let balanceInfo = try? await fetchBalance()
 
         return SyncOutput(
+            records: all.sorted { $0.day < $1.day },
+            coverageEnd: now,
+            totalCost: overview,
+            balance: balanceInfo?.0,
+            currency: balanceInfo?.1
+        )
+    }
+
+    /// 轻量同步（定时刷新用）：只拉「当前 + 上个月」的明细 + 余额 + 累计消费，
+    /// 不回溯更早月份，请求量小得多；入库只替换这两个范围内的记录。
+    /// 接口按月出按天明细，月末跨月（今天是 1 号）时上月数据也要一起刷，故固定拉两个月。
+    @MainActor
+    static func syncLightweight(session: Session) async throws -> LightSyncOutput {
+        let calendar = Calendar.current
+        let now = Date()
+
+        try await MimoWebSyncDriver.shared.prepare(session: session)
+        let keyNames = try await fetchKeyNames()
+
+        var all: [UsageRecord] = []
+        for offset in [0, -1] {
+            guard let cursor = calendar.date(byAdding: .month, value: offset, to: now) else { continue }
+            let year = calendar.component(.year, from: cursor)
+            let month = calendar.component(.month, from: cursor)
+            all += try await fetchBillingDetail(year: year, month: month, keyNames: keyNames)
+            all += try await fetchPlanDetail(year: year, month: month)
+        }
+
+        let overview = try? await fetchOverview()
+        let balanceInfo = try? await fetchBalance()
+
+        return LightSyncOutput(
             records: all.sorted { $0.day < $1.day },
             coverageEnd: now,
             totalCost: overview,
@@ -252,9 +293,12 @@ final class MimoWebSyncDriver {
     private static let base = "https://platform.xiaomimimo.com"
 
     private var webView: WKWebView?
+    /// 已注入并就绪的会话 serviceToken（供 prepare 复用，避免定时同步每次重建页面）
+    private var preparedServiceToken: String?
 
-    /// 注入会话 cookie 并加载同域页面。每次同步重建非持久数据仓，避免跨账户残留。
+    /// 注入会话 cookie 并加载同域页面。同会话重复调用直接复用已就绪的驱动。
     func prepare(session: MimoSyncService.Session) async throws {
+        if webView != nil, preparedServiceToken == session.serviceToken { return }
         let store = WKWebsiteDataStore.nonPersistent()
         let jar = store.httpCookieStore
         var pairs: [(String, String)] = [
@@ -284,6 +328,7 @@ final class MimoWebSyncDriver {
             try await Task.sleep(nanoseconds: 200_000_000)
             waited += 0.2
         }
+        preparedServiceToken = session.serviceToken
     }
 
     /// 在页面上下文里调 /api/v1 接口，返回响应文本。
@@ -349,7 +394,12 @@ final class MimoWebSyncDriver {
               let status = obj["status"] as? Int else {
             throw UsageSyncError.decodingFailed
         }
-        if status == 401 || status == 403 { throw UsageSyncError.invalidToken }
+        if status == 401 || status == 403 {
+            // 会话失效：丢弃驱动，下次（重新登录后）重建，避免拿旧页面上下文继续空转
+            self.webView = nil
+            self.preparedServiceToken = nil
+            throw UsageSyncError.invalidToken
+        }
         if status == -1 {
             throw UsageSyncError.serverError(-1, String((obj["text"] as? String ?? "").prefix(100)))
         }

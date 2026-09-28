@@ -322,12 +322,14 @@ final class BalanceStore: ObservableObject {
         // 重新登录后解除自动同步封锁并立刻补一次今天/昨天的逐小时同步
         recentSyncBlocked.remove(account.id)
         lastRecentSync.removeValue(forKey: account.id)
+        lastMimoSync.removeValue(forKey: account.id)
         Task { await refresh() }
     }
 
     func clearSyncToken(for account: ProviderAccount) {
         APIKeyStore.saveSyncToken(nil, for: account.id)
         lastRecentSync.removeValue(forKey: account.id)
+        lastMimoSync.removeValue(forKey: account.id)
     }
 
     /// 官网同步结果入库：替换该账户全部用量记录，覆盖边界为同步时刻
@@ -369,6 +371,65 @@ final class BalanceStore: ObservableObject {
             } catch {
                 // 网络失败等：下一轮定时器再试
             }
+        }
+    }
+
+    /// MiMo 轻量同步的最小间隔：跟随面板的自动刷新节奏，60 秒防抖
+    ///（手动刷新按钮连点也不会连发官网请求）
+    private static let mimoSyncMinInterval: TimeInterval = 60
+    private var lastMimoSync: [UUID: Date] = [:]
+
+    /// 用已保存的小米官网登录态轻量同步「本月 + 上月」的逐日用量、余额与累计消费。
+    /// MiMo 没有按 Key 的公开余额/用量 API，不跑这个的话看板只能停在上次手动同步的时刻，
+    /// 无法随设置的刷新间隔更新。
+    private func autoSyncMimo() async {
+        for account in accounts where account.provider == .mimo {
+            guard !recentSyncBlocked.contains(account.id),
+                  let raw = syncToken(for: account),
+                  let data = raw.data(using: .utf8),
+                  let session = try? JSONDecoder().decode(MimoSyncService.Session.self, from: data),
+                  Date().timeIntervalSince(lastMimoSync[account.id] ?? .distantPast)
+                      >= Self.mimoSyncMinInterval
+            else { continue }
+            lastMimoSync[account.id] = Date()
+            do {
+                let output = try await MimoSyncService.syncLightweight(session: session)
+                applyMimoLightSync(output, into: account)
+            } catch UsageSyncError.invalidToken {
+                recentSyncBlocked.insert(account.id)
+            } catch {
+                // 网络失败等：下一轮定时器再试
+            }
+        }
+    }
+
+    /// MiMo 轻量同步入库：替换「本月起」的用量记录（更早历史不动）、推进覆盖边界、
+    /// 写余额快照；未手动校准过累计消费时用官网口径自动填入。
+    /// 空结果只更新余额/累计，不动已有用量记录（与手动同步的防误删口径一致）。
+    func applyMimoLightSync(_ output: MimoSyncService.LightSyncOutput, into account: ProviderAccount) {
+        let calendar = Calendar.current
+        if !output.records.isEmpty {
+            // 替换范围 = 上个月 1 号起（今天是 1 号时昨天属上月，必须一并覆盖）
+            guard let prevMonth = calendar.date(byAdding: .month, value: -1, to: Date()),
+                  let floor = calendar.date(
+                      from: calendar.dateComponents([.year, .month], from: prevMonth))
+            else { return }
+            var stamped = output.records
+            for index in stamped.indices { stamped[index].accountID = account.id }
+            usageRecords.removeAll { $0.accountID == account.id && $0.day >= floor }
+            usageRecords.append(contentsOf: stamped)
+            usageRecords.sort { $0.day < $1.day }
+            if output.coverageEnd > (usageCoverageEnd[account.id] ?? .distantPast) {
+                usageCoverageEnd[account.id] = output.coverageEnd
+            }
+        }
+        if account.cumulativeBase == nil, let total = output.totalCost, total > 0 {
+            updateAccountCumulativeBase(account, base: total)
+        }
+        if let balance = output.balance {
+            applyMimoBalance(balance, currency: output.currency ?? "CNY", to: account)
+        } else {
+            saveCache()
         }
     }
 
@@ -556,6 +617,9 @@ final class BalanceStore: ObservableObject {
         // 有官网登录态的 DeepSeek 账户：轻量同步今天/昨天的逐小时用量（内部有节流），
         // 让今天/昨天维度的模型归属是官网精确值而非余额差额的占比估算
         await autoSyncRecentUsage()
+        // 有官网登录态的 MiMo 账户：轻量同步本月/上月明细 + 余额 + 累计消费，
+        // 让 MiMo 数据随自动刷新间隔更新（内部有 60 秒防抖）
+        await autoSyncMimo()
     }
 
     /// 保留最近 90 天，且最多 5000 条，防止缓存无限增长
