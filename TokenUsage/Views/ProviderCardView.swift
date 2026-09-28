@@ -15,7 +15,11 @@ import UniformTypeIdentifiers
 /// 所有图表支持 hover 显示当天明细数值。
 struct ProviderCardView: View {
     let provider: AIProvider
+    /// 卡片实际统计口径。MiMo 用量接口只有按天粒度、今天/昨天维度没有逐小时数据，
+    /// 这两个维度下自动按「近 7 天」展示（图表与统计同口径），原选择记在 rangeSwappedFrom
     let range: UsageRange
+    /// 因 MiMo 无逐小时数据而发生口径替换时的原选择，用于提示文案
+    let rangeSwappedFrom: UsageRange?
     @EnvironmentObject private var store: BalanceStore
     /// API Key 多选（JSON 编码的 Set<String>；空串 = 默认全部，空集 = 全不勾放空）
     @AppStorage private var keySelectionRaw: String
@@ -39,7 +43,14 @@ struct ProviderCardView: View {
 
     init(provider: AIProvider, range: UsageRange) {
         self.provider = provider
-        self.range = range
+        // MiMo 无逐小时数据：今天/昨天维度退到近 7 天口径展示
+        if provider == .mimo, range == .today || range == .yesterday {
+            self.range = .week
+            self.rangeSwappedFrom = range
+        } else {
+            self.range = range
+            self.rangeSwappedFrom = nil
+        }
         _keySelectionRaw = AppStorage(wrappedValue: "", "keySelection.\(provider.rawValue)")
         _accountSelectionRaw = AppStorage(wrappedValue: "", "accountSelection.\(provider.rawValue)")
         _cardMode = AppStorage(wrappedValue: "detailed", "cardMode.\(provider.rawValue)")
@@ -545,6 +556,15 @@ struct ProviderCardView: View {
         let agg = makeAgg()
         return VStack(alignment: .leading, spacing: 10) {
             titleRow
+            // MiMo 今天/昨天维度的口径替换提示：避免用户疑惑为何显示的是近 7 天
+            if let swapped = rangeSwappedFrom {
+                HStack(spacing: 4) {
+                    Image(systemName: "info.circle")
+                    Text("MiMo 用量按天统计，无逐小时数据；「\(swapped.title)」维度按「\(range.title)」展示")
+                }
+                .font(.caption2)
+                .foregroundStyle(.tertiary)
+            }
             if providerAccounts.isEmpty {
                 missingKeyRow
             } else if isSimple {
